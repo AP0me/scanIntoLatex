@@ -1,0 +1,3 @@
+text and text-formatting recognition
+image border recognition
+formula recognition
