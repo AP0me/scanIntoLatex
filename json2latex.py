@@ -1,28 +1,36 @@
 import json
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
+from docx import Document
+from docx.shared import Pt
 
-def pixels_to_points(pixels, dpi=72):
-  return pixels * dpi / 96  
+def generate_docx_with_tabs_spaces_fontsize(input_file='ocr_results.json', output_filename="output.docx", dpi=96):
+    with open(input_file, 'r') as f:
+        ocr_results = json.load(f)
 
-def generate_pdf(input_file='ocr_results.json', image_shape=(1024, 768), output_filename="output.pdf", dpi=96):
-  with open(input_file, 'r') as f:
-    ocr_results = json.load(f)
+    doc = Document()
 
-  c = canvas.Canvas(output_filename, pagesize=letter)
-  width, height = letter  
+    for result in reversed(ocr_results):
+        x1, y1, x2, y2 = result["coordinates"]
+        text = result["text"]
+        text_height = y2 - y1
 
-  for result in reversed(ocr_results):
-    x1, y1, x2, y2 = result["coordinates"]
-    text = result["text"]
-    font_size = pixels_to_points(y2 - y1, dpi)
-    x = pixels_to_points(x1, dpi)
-    y = height - pixels_to_points(y2, dpi)  
-    c.setFont("Helvetica", font_size)
-    c.drawString(x, y, text)
+        # Calculate number of tabs and spaces needed for positioning
+        # This is a rough approximation and may need adjustment
+        tab_count = x1 // 100  # Assuming each tab approximates 100 pixels
+        space_count = (x1 % 100) // 10  # Assuming each space approximates 10 pixels
 
-  c.save()
-  return output_filename
+        # Calculate font size
+        font_size = text_height * 72 / dpi  # Convert pixels to points
 
-pdf_file = generate_pdf(input_file='ocr_results.json')
-print(f"PDF file '{pdf_file}' generated successfully from JSON data.")
+        # Construct the line with tabs and spaces for positioning
+        line = '\t' * tab_count + ' ' * space_count + text
+
+        # Add the line to the document and set font size
+        paragraph = doc.add_paragraph(line)
+        run = paragraph.runs[0]
+        run.font.size = Pt(font_size)
+
+    doc.save(output_filename)
+    return output_filename
+
+docx_file = generate_docx_with_tabs_spaces_fontsize(input_file='ocr_results.json')
+print(f"DOCX file '{docx_file}' generated successfully with adjusted font size and simulated positioning.")
