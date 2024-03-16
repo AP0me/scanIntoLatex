@@ -1,10 +1,8 @@
-import cv2
-import pytesseract
-import re
-import json
-import numpy as np
+import cv2; import pytesseract; import re;
+import json; import numpy as np
 
 def extract_text_regions(image_path, output_file='ocr_results.json', show_image=False, colorize_white=False):
+  output_file = "./output/" + output_file
   image = cv2.imread(image_path)
   gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
@@ -41,5 +39,6 @@ def extract_text_regions(image_path, output_file='ocr_results.json', show_image=
 
   return image.shape
 
-image_path = 'sffCapture.png'
+image_path = './input/sffCapture.png'
 image_shape = extract_text_regions(image_path, show_image=True, colorize_white=True)
+
