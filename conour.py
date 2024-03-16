@@ -15,7 +15,7 @@ def extract_text_regions_and_show(image_path):
     x, y, w, h = cv2.boundingRect(contour)
     cv2.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 2)    
     roi = gray[y:y+h, x:x+w]
-    text = pytesseract.image_to_string(roi, lang='eng', config = "--psm 7")
+    text = pytesseract.image_to_string(roi, lang='eng', config = "--psm 12")
     if text.strip() != '':
       text_regions.append(text.strip())
       print(f"Detected text region: Top-Left: ({x}, {y}), Bottom-Right: ({x+w}, {y+h})")

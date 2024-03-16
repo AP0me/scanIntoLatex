@@ -18,7 +18,7 @@ def generate_latex(input_file='ocr_results.json', image_shape=(1024, 768), outpu
     file.write("\\setlength{\\TPVertModule}{1in}\n")
     file.write("\\begin{document}\n")
 
-    for result in ocr_results:
+    for result in reversed(ocr_results):
       x1, y1, x2, y2 = result["coordinates"]
       text_height_inches = pixels_to_inches(y2 - y1, dpi)
       font_size = text_height_inches * 72  # Convert inches to points
