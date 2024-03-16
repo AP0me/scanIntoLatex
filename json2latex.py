@@ -1,40 +1,28 @@
 import json
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
 
-def pixels_to_inches(pixels, dpi=96):
-  return pixels / dpi  # Convert pixels to inches based on DPI
+def pixels_to_points(pixels, dpi=72):
+  return pixels * dpi / 96  
 
-def generate_latex(input_file='ocr_results.json', image_shape=(1024, 768), output_filename="output.tex", dpi=96):
-  width_inches = pixels_to_inches(image_shape[1], dpi)
-  height_inches = pixels_to_inches(image_shape[0], dpi)
-
+def generate_pdf(input_file='ocr_results.json', image_shape=(1024, 768), output_filename="output.pdf", dpi=96):
   with open(input_file, 'r') as f:
     ocr_results = json.load(f)
 
-  with open(output_filename, 'w') as file:
-    file.write("\\documentclass{article}\n")
-    file.write("\\usepackage[margin=0in, paperwidth=" + str(width_inches) + "in, paperheight=" + str(height_inches) + "in]{geometry}\n")
-    file.write("\\usepackage[absolute,overlay]{textpos}\n")
-    file.write("\\setlength{\\TPHorizModule}{1in}\n")  # 1 unit = 1 inch
-    file.write("\\setlength{\\TPVertModule}{1in}\n")
-    file.write("\\begin{document}\n")
+  c = canvas.Canvas(output_filename, pagesize=letter)
+  width, height = letter  
 
-    for result in reversed(ocr_results):
-      x1, y1, x2, y2 = result["coordinates"]
-      text_height_inches = pixels_to_inches(y2 - y1, dpi)
-      font_size = text_height_inches * 72  # Convert inches to points
-      baselineskip = font_size * 1.2  # Example baseline skip
+  for result in reversed(ocr_results):
+    x1, y1, x2, y2 = result["coordinates"]
+    text = result["text"]
+    font_size = pixels_to_points(y2 - y1, dpi)
+    x = pixels_to_points(x1, dpi)
+    y = height - pixels_to_points(y2, dpi)  
+    c.setFont("Helvetica", font_size)
+    c.drawString(x, y, text)
 
-      x_inches = pixels_to_inches(x1, dpi)
-      y_inches = pixels_to_inches(y2, dpi)  # Flip y-coordinate for LaTeX
+  c.save()
+  return output_filename
 
-      text = result["text"].replace("&", "\\&").replace("%", "\\%")
-      file.write(f"\\begin{{textblock*}}{{{width_inches}in}}({x_inches}in,{y_inches}in)\n")
-      file.write(f"\\fontsize{{{font_size:.2f}}}{{{baselineskip:.2f}}}\selectfont\n")
-      file.write(f"{text}\n")
-      file.write("\\end{textblock*}\n")
-
-    file.write("\\end{document}\n")
-
-latex_file = 'output.tex'  # Output LaTeX file name
-generate_latex(input_file='ocr_results.json', output_filename=latex_file)
-print(f"LaTeX file '{latex_file}' generated successfully with positioned and sized text.")
+pdf_file = generate_pdf(input_file='ocr_results.json')
+print(f"PDF file '{pdf_file}' generated successfully from JSON data.")
